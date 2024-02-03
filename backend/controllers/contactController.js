@@ -7,18 +7,18 @@ const Contact = require("../models/contactModels"); // 5.4 <= 10.3
 //5
 //@description get all contacts
 //@route GET /api/contacts
-//@access Public
+//@access private
 
 const getContacts = asyncHandler(async (req, res) => {
   // 5.1
-  const contacts = await Contact.find(); // 5.5
+  const contacts = await Contact.find({ user_id: req.user.id }); // 5.5
   res.status(200).json(contacts); // 5.6
   //   res.status(200).json({ message: "get all contacts" }); // 5.1
 });
 
 //@description create new contacts
 //@route POST /api/contacts
-//@access Public
+//@access private
 
 const createContact = asyncHandler(async (req, res) => {
   console.log("the request body is", req.body); // 5.2 for receive the request body we need to create a middleware
@@ -32,6 +32,7 @@ const createContact = asyncHandler(async (req, res) => {
     name,
     email,
     phone,
+    user_id: req.user.id, // 5.6
   }); // 5.7
   //   res.status(200).json({ message: "create contacts" }); // 5.1 <= 4.1
   res.status(200).json(contact); // 5.8
@@ -39,7 +40,7 @@ const createContact = asyncHandler(async (req, res) => {
 
 //@description get all contact
 //@route GET /api/contacts/:id
-//@access Public
+//@access private
 
 const getContact = asyncHandler(async (req, res, next) => {
   const contact = await Contact.findById(req.params.id); // 5.9
@@ -53,7 +54,7 @@ const getContact = asyncHandler(async (req, res, next) => {
 
 //@description Update specific contacts
 //@route PUT /api/contacts/:id
-//@access Public
+//@access private
 
 const updateContact = asyncHandler(async (req, res, next) => {
   const contact = await Contact.findById(req.params.id); // 5.10
@@ -62,6 +63,10 @@ const updateContact = asyncHandler(async (req, res, next) => {
     return next(new Error("Contact not found"));
   }
 
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(401);
+    return next(new Error("user don't have access to update this contact"));
+  }
   const updatedContact = await Contact.findByIdAndUpdate(
     req.params.id,
     req.body,
@@ -73,7 +78,7 @@ const updateContact = asyncHandler(async (req, res, next) => {
 
 //@description delete specific contacts
 //@route DELETE /api/contacts/:id
-//@access Public
+//@access private
 
 const deleteContact = asyncHandler(async (req, res, next) => {
   const contact = await Contact.findById(req.params.id); // 5.10
@@ -81,8 +86,11 @@ const deleteContact = asyncHandler(async (req, res, next) => {
     res.status(404);
     return next(new Error("Contact not found"));
   }
-
-  await contact.deleteOne();
+  if (contact.user_id.toString() !== req.user.id) {
+    res.status(401);
+    return next(new Error("user don't have access to update this contact"));
+  }
+  await contact.deleteOne({_id:req.params.id});
   res.status(200).json(contact); // 5.11
 
   //from here started authentications

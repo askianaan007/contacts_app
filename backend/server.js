@@ -16,8 +16,9 @@ const port = process.env.PORT || 5000; //2
 
 app.use(express.json()) ;//5.2
 app.use ("/api/contacts",require('./routes/contactRoutes')) //5
+app.use ("/api/users",require('./routes/usersRoutes')) //11
 app.use(errorHandler)
 
 app.listen(port,()=>{
-    console.log(`port listening on ${port}`); //2.1
+    console.log(`port listening on:  ${port}`); //2.1
 })

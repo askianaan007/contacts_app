@@ -5,7 +5,7 @@ const connectDb = async () => {
   try {
     const connect = await mongoose.connect(process.env.CONNECTION_STRING); // 9.2
     console.log(
-      "database connected",
+      "database connected: ",
       connect.connection.host,
       connect.connection.name
     );
